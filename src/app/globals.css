@@ -3,19 +3,51 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Act-On Brand Colors */
+  --ao-black: #101820;
+  --ao-frost: #EEF3FA;
+  --ao-red: #FD4A5C;
+  --ao-teal: #00BABE;
+  --ao-yellow: #C2D500;
+  --ao-blue: #194F90;
+  --ao-med-grey: #DDDDDD;
+  --ao-light-grey: #F2F2F2;
+
+  /* System Colors */
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.dark {
+  --background: 222.2 84% 4.9%;
+  --foreground: 210 40% 98%;
+  --card: 217.2 32.6% 17.5%;
+  --card-foreground: 210 40% 98%;
+  --muted: 217.2 32.6% 17.5%;
+  --muted-foreground: 215 20.2% 65.1%;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: hsl(var(--foreground));
+  background: hsl(var(--background));
+  font-family: 'Inter', sans-serif;
+}
+
+/* Typography Classes */
+.page-header {
+  font-size: 32px;
+  line-height: 40px;
+  font-weight: 600;
+  letter-spacing: -0.025em;
+}
+
+.page-subtitle {
+  font-size: 16px;
+  line-height: 24px;
+  color: hsl(var(--muted-foreground));
+  font-weight: 400;
 }

@@ -1,0 +1,78 @@
+{
+    "Convert unknown visitors to know leads": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "New customer acquisition"
+    },
+    "Identify and target audience segments": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "New customer acquisition"
+    },
+    "Reach new prospects through omni-channel campaigns": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "New customer acquisition"
+    },
+    "Personalize outreach and communication": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "Build Pipeline and Accelerate Sales"
+    },
+    "Nurture prospects into opportunities": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "Build Pipeline and Accelerate Sales"
+    },
+    "Deliver the best leads to sales": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "Build Pipeline and Accelerate Sales"
+    },
+    "Empower Sales with account intelligence": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "Build Pipeline and Accelerate Sales"
+    },
+    "Scale demand generation operations": {
+    "getKeepGrow": "1-GET",
+    "cmoPriority": "Build Pipeline and Accelerate Sales"
+    },
+    "Welcome and onboard new customers": {
+    "getKeepGrow": "2-KEEP",
+    "cmoPriority": "Deliver value and retain customers"
+    },
+    "Drive product adoption & usage": {
+    "getKeepGrow": "2-KEEP",
+    "cmoPriority": "Deliver value and retain customers"
+    },
+    "Engage customers with regular communication": {
+    "getKeepGrow": "2-KEEP",
+    "cmoPriority": "Deliver value and retain customers"
+    },
+    "Automate customer renewal": {
+    "getKeepGrow": "2-KEEP",
+    "cmoPriority": "Deliver value and retain customers"
+    },
+    "Grow advocates; build loyalty": {
+    "getKeepGrow": "3-GROW",
+    "cmoPriority": "Increase customer loyalty"
+    },
+    "Automate internal & partner communications": {
+    "getKeepGrow": "3-GROW",
+    "cmoPriority": "Increase customer loyalty"
+    },
+    "Cross-sell and upsell": {
+    "getKeepGrow": "3-GROW",
+    "cmoPriority": "Maximize Customer Revenue (ARPU)"
+    },
+    "Improve marketing performance": {
+    "getKeepGrow": "4-OPTIMIZE",
+    "cmoPriority": "Maximizing MROI"
+    },
+    "Be a data-driven marketing org": {
+    "getKeepGrow": "4-OPTIMIZE",
+    "cmoPriority": "Maximizing MROI"
+    },
+    "Scale marketing output": {
+    "getKeepGrow": "4-OPTIMIZE",
+    "cmoPriority": "Maximizing MROI"
+    },
+    "Create a single source of truth for Marketing": {
+    "getKeepGrow": "4-OPTIMIZE",
+    "cmoPriority": "Maximizing MROI"
+    }
+}
