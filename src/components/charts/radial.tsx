@@ -1,21 +1,20 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
-import { Group } from '@visx/group';
-import { Treemap, hierarchy } from '@visx/hierarchy';
-import { useTooltip, TooltipWithBounds } from '@visx/tooltip';
-import { Text } from '@visx/text';
-import { animated, useSpring, useTrail, config } from '@react-spring/web';
-import { ExternalLink, X } from 'lucide-react';
-import _ from 'lodash';
-import { useCaseMapping } from '@/types/chart';
-
+import React, { useState, useEffect, useMemo, useRef } from "react";
+import { Group } from "@visx/group";
+import { Treemap, hierarchy } from "@visx/hierarchy";
+import { useTooltip, TooltipWithBounds } from "@visx/tooltip";
+import { Text } from "@visx/text";
+import { animated, useSpring, useTrail, config } from "@react-spring/web";
+import { ExternalLink, X } from "lucide-react";
+import _ from "lodash";
+import { useCaseMapping } from "@/types/chart";
 
 const METRICS = {
-  'Total Users': 'total_users',
-  'Sessions': 'sessions',
-  'Page Views': 'views',
-  'Engagement Rate': 'engagement_rate',
-  'Avg Session Duration': 'avg_session_duration',
-  'Bounce Rate': 'bounce_rate'
+  "Total Users": "total_users",
+  Sessions: "sessions",
+  "Page Views": "views",
+  "Engagement Rate": "engagement_rate",
+  "Avg Session Duration": "avg_session_duration",
+  "Bounce Rate": "bounce_rate",
 };
 
 const AnimatedRect = animated.rect;
@@ -25,95 +24,102 @@ const RadialMetricWheel = () => {
   const [rawData, setRawData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [highlightedCluster, setHighlightedCluster] = useState(null);
-  const [selectedNode, setSelectedNode] = useState(null);
-  const [sizeMetric, setSizeMetric] = useState('sessions');
-  const [opacityMetric, setOpacityMetric] = useState('engagement_rate');
+  const [highlightedCluster, setHighlightedCluster] = useState<string | null>(
+    null
+  );
+  const [selectedNode, setSelectedNode] = useState<{
+    name: string;
+    useCase: string;
+    url?: string;
+    [key: string]: any;
+  } | null>(null);
+  const [sizeMetric, setSizeMetric] = useState("sessions");
+  const [opacityMetric, setOpacityMetric] = useState("engagement_rate");
   const tooltipTimeoutRef = useRef(null);
   const [isHoveringCluster, setIsHoveringCluster] = useState(false);
   const chartRef = useRef(null);
 
-  const { tooltipData, tooltipLeft, tooltipTop, showTooltip, hideTooltip } = useTooltip();
+  const { tooltipData, tooltipLeft, tooltipTop, showTooltip, hideTooltip } =
+    useTooltip();
 
-    
-    
   const handleCloseTooltip = () => {
     setSelectedNode(null);
     setHighlightedCluster(null);
     hideTooltip();
   };
-  
-    const handleChartMouseEnter = () => {
-      // Optional: Reset any lingering states when re-entering the chart
-    };
-        
-        // Fix the chart mouse leave handler
-    const handleChartMouseLeave = () => {
+
+  const handleChartMouseEnter = () => {
+    // Optional: Reset any lingering states when re-entering the chart
+  };
+
+  // Fix the chart mouse leave handler
+  const handleChartMouseLeave = () => {
+    setHighlightedCluster(null);
+    if (!selectedNode) {
+      setIsHoveringCluster(false);
+    }
+  };
+
+  const handleNodeClick = (node, event) => {
+    event.stopPropagation();
+    if (selectedNode?.name === node.name) {
+      setSelectedNode(null);
+      hideTooltip();
+      setHighlightedCluster(null);
+    } else {
+      setSelectedNode(node);
+      setHighlightedCluster(node.useCase);
+      const rect = event.target.getBoundingClientRect();
+      const scrollTop =
+        window.pageYOffset || document.documentElement.scrollTop;
+      showTooltip({
+        tooltipLeft: rect.right + 10,
+        tooltipTop: rect.top + scrollTop,
+        tooltipData: node,
+      });
+    }
+  };
+
+  const handleMouseEnter = (node) => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+    setIsHoveringCluster(true);
+    setHighlightedCluster(node.useCase);
+  };
+
+  const handleMouseLeave = () => {
+    if (!selectedNode) {
+      setIsHoveringCluster(false);
+      tooltipTimeoutRef.current = setTimeout(() => {
+        if (!isHoveringCluster) {
+          setHighlightedCluster(null);
+        }
+      }, 100);
+    }
+  };
+
+  const handleTooltipMouseEnter = () => {
+    if (tooltipTimeoutRef.current) {
+      clearTimeout(tooltipTimeoutRef.current);
+      tooltipTimeoutRef.current = null;
+    }
+    setIsHoveringCluster(true);
+  };
+
+  const handleTooltipMouseLeave = () => {
+    setIsHoveringCluster(false);
+    // Check if we're leaving the entire chart area
+    if (!chartRef.current?.contains(document.activeElement)) {
+      tooltipTimeoutRef.current = setTimeout(() => {
         setHighlightedCluster(null);
         if (!selectedNode) {
-        setIsHoveringCluster(false);
+          hideTooltip();
         }
-    };
-  
-    const handleNodeClick = (node, event) => {
-      event.stopPropagation();
-      if (selectedNode?.name === node.name) {
-        setSelectedNode(null);
-        hideTooltip();
-        setHighlightedCluster(null);
-      } else {
-        setSelectedNode(node);
-        setHighlightedCluster(node.useCase);
-        const rect = event.target.getBoundingClientRect();
-        const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-        showTooltip({
-          tooltipLeft: rect.right + 10,
-          tooltipTop: rect.top + scrollTop,
-          tooltipData: node,
-        });
-      }
-    };
-  
-    const handleMouseEnter = (node) => {
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current);
-        tooltipTimeoutRef.current = null;
-      }
-      setIsHoveringCluster(true);
-      setHighlightedCluster(node.useCase);
-    };
-  
-    const handleMouseLeave = () => {
-      if (!selectedNode) {
-        setIsHoveringCluster(false);
-        tooltipTimeoutRef.current = setTimeout(() => {
-          if (!isHoveringCluster) {
-            setHighlightedCluster(null);
-          }
-        }, 100);
-      }
-    };
-  
-    const handleTooltipMouseEnter = () => {
-      if (tooltipTimeoutRef.current) {
-        clearTimeout(tooltipTimeoutRef.current);
-        tooltipTimeoutRef.current = null;
-      }
-      setIsHoveringCluster(true);
-    };
-  
-    const handleTooltipMouseLeave = () => {
-      setIsHoveringCluster(false);
-      // Check if we're leaving the entire chart area
-      if (!chartRef.current?.contains(document.activeElement)) {
-        tooltipTimeoutRef.current = setTimeout(() => {
-          setHighlightedCluster(null);
-          if (!selectedNode) {
-            hideTooltip();
-          }
-        }, 100);
-      }
-    };
+      }, 100);
+    }
+  };
 
   // Cleanup timeouts
   useEffect(() => {
@@ -124,19 +130,18 @@ const RadialMetricWheel = () => {
     };
   }, []);
   const colors = {
-    get: '#00BABE',
-    keep: '#FD4A5C',
-    grow: '#C2D500',
-    optimize: '#194F90',
-    background: '#EEF3FA'
+    get: "#00BABE",
+    keep: "#FD4A5C",
+    grow: "#C2D500",
+    optimize: "#194F90",
+    background: "#EEF3FA",
   };
-
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/data');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        const response = await fetch("/api/data");
+        if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
         setRawData(data);
         setLoading(false);
@@ -151,42 +156,42 @@ const RadialMetricWheel = () => {
 
   const calculateOpacity = (value, metric, allValues) => {
     if (value == null) return 0.1;
-    
+
     const values = allValues
-      .filter(analytics => analytics && analytics[metric] != null)
-      .map(analytics => analytics[metric]);
+      .filter((analytics) => analytics && analytics[metric] != null)
+      .map((analytics) => analytics[metric]);
 
     if (values.length === 0) return 0.1;
-    
+
     const min = Math.min(...values);
     const max = Math.max(...values);
-    
+
     if (min === max) return 0.8;
-    
-    if (metric === 'engagement_rate' || metric === 'bounce_rate') {
-      return 0.2 + (0.8 * value);
+
+    if (metric === "engagement_rate" || metric === "bounce_rate") {
+      return 0.2 + 0.8 * value;
     }
-    
-    return 0.2 + (0.8 * (value - min) / (max - min));
+
+    return 0.2 + (0.8 * (value - min)) / (max - min);
   };
 
   const processedData = useMemo(() => {
     if (!rawData.length) return null;
-  
+
     const allAnalytics = rawData
-      .map(entry => entry.analytics)
+      .map((entry) => entry.analytics)
       .filter(Boolean);
-  
+
     const groupedData = _.chain(rawData)
-      .filter(entry => {
+      .filter((entry) => {
         const useCaseName = entry.use_case_multi_primary?.name;
         // Use the mapping to ensure we have a valid category
         return useCaseName && useCaseMapping[useCaseName];
       })
-      .groupBy(entry => entry.use_case_multi_primary.name)
+      .groupBy((entry) => entry.use_case_multi_primary.name)
       .map((articles, useCase) => ({
         name: useCase,
-        children: articles.map(article => ({
+        children: articles.map((article) => ({
           name: article.title,
           url: article.url,
           // Use the mapping to get the correct category
@@ -197,21 +202,21 @@ const RadialMetricWheel = () => {
             article.analytics?.[opacityMetric],
             opacityMetric,
             allAnalytics
-          )
-        }))
+          ),
+        })),
       }))
       .value();
-  
+
     return {
-      name: 'Use Cases',
-      children: groupedData
+      name: "Use Cases",
+      children: groupedData,
     };
   }, [rawData, opacityMetric]);
 
   const root = useMemo(() => {
     if (!processedData) return null;
     return hierarchy(processedData)
-      .sum(d => d[sizeMetric] || 0)
+      .sum((d) => d[sizeMetric] || 0)
       .sort((a, b) => (b.value || 0) - (a.value || 0));
   }, [processedData, sizeMetric]);
 
@@ -227,10 +232,10 @@ const RadialMetricWheel = () => {
 
   const getColor = (category) => {
     const colorMap = {
-      '1-GET': colors.get,
-      '2-KEEP': colors.keep,
-      '3-GROW': colors.grow,
-      '4-OPTIMIZE': colors.optimize
+      "1-GET": colors.get,
+      "2-KEEP": colors.keep,
+      "3-GROW": colors.grow,
+      "4-OPTIMIZE": colors.optimize,
     };
     return colorMap[category];
   };
@@ -271,18 +276,21 @@ const RadialMetricWheel = () => {
           tension: 300,
           friction: 20,
           mass: 1,
-        }
+        },
       });
 
       return (
         <AnimatedGroup
           key={`node-${i}`}
           style={{
-            transform: springProps.scale.to(s => `scale(${s})`),
-            transformOrigin: `${node.x0 + width / 2}px ${node.y0 + height / 2}px`
+            transform: springProps.scale.to((s) => `scale(${s})`),
+            transformOrigin: `${node.x0 + width / 2}px ${
+              node.y0 + height / 2
+            }px`,
           }}
         >
           <AnimatedRect
+            // @ts-ignore
             width={springProps.width}
             height={springProps.height}
             x={springProps.x}
@@ -294,19 +302,28 @@ const RadialMetricWheel = () => {
             onClick={(e) => handleNodeClick(data, e)}
             onMouseEnter={() => handleMouseEnter(data)}
             onMouseLeave={handleMouseLeave}
-            style={{ 
-              cursor: 'pointer',
-              filter: isHighlighted ? 'brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.3))' : 'none',
-              transition: 'filter 0.3s ease'
+            style={{
+              cursor: "pointer",
+              filter: isHighlighted
+                ? "brightness(1.1) drop-shadow(0 0 8px rgba(255,255,255,0.3))"
+                : "none",
+              transition: "filter 0.3s ease",
             }}
           />
           {width > 40 && height > 40 && (
+            // @ts-ignore
             <animated.g
               style={{
                 opacity: springProps.opacity,
-                transform: springProps.scale.to(s => `translate(${node.x0 + width / 2}px, ${node.y0 + height / 2}px) scale(${s})`)
+                transform: springProps.scale.to(
+                  (s) =>
+                    `translate(${node.x0 + width / 2}px, ${
+                      node.y0 + height / 2
+                    }px) scale(${s})`
+                ),
               }}
             >
+              {/* @ts-ignore */}
               <Text
                 x={0}
                 y={0}
@@ -316,10 +333,10 @@ const RadialMetricWheel = () => {
                 fontSize={Math.min(12, width / 12)}
                 fill="#ffffff"
                 pointerEvents="none"
-                style={{ userSelect: 'none' }}
+                style={{ userSelect: "none" }}
               >
                 {data.name.substring(0, 30)}
-                {data.name.length > 30 ? '...' : ''}
+                {data.name.length > 30 ? "..." : ""}
               </Text>
             </animated.g>
           )}
@@ -329,20 +346,26 @@ const RadialMetricWheel = () => {
     return null;
   };
 
-
   const Legend = () => (
     <div className="flex justify-between items-end mb-6">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-4">
-          {['1-GET', '2-KEEP', '3-GROW', '4-OPTIMIZE'].map(category => (
+          {["1-GET", "2-KEEP", "3-GROW", "4-OPTIMIZE"].map((category) => (
             <div key={category} className="flex items-center gap-2">
-              <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getColor(category) }}></div>
+              <div
+                className="w-3 h-3 rounded-full"
+                style={{ backgroundColor: getColor(category) }}
+              ></div>
               <span className="text-sm">{category}</span>
             </div>
           ))}
         </div>
         <div className="text-sm">
-          {highlightedCluster || <span className="font-light opacity-60 italic">Hover over a tile to see the use case</span>}
+          {highlightedCluster || (
+            <span className="font-light opacity-60 italic">
+              Hover over a tile to see the use case
+            </span>
+          )}
         </div>
       </div>
       <div className="flex items-center gap-4">
@@ -362,9 +385,9 @@ const RadialMetricWheel = () => {
 
   const CustomTooltip = ({ data }) => {
     if (!data) return null;
-    
+
     return (
-      <div 
+      <div
         className="bg-white rounded-lg shadow-lg border border-gray-200 w-72 overflow-hidden relative"
         onMouseEnter={handleTooltipMouseEnter}
         onMouseLeave={handleTooltipMouseLeave}
@@ -393,13 +416,15 @@ const RadialMetricWheel = () => {
             <p className="text-sm opacity-90">{data.useCase}</p>
           </div>
         </a>
-        
+
         {/* Metrics */}
         <div className="p-4 space-y-3">
           <div className="grid grid-cols-2 gap-4">
             <div>
               <p className="text-sm text-gray-600">Total Users</p>
-              <p className="font-semibold">{data.total_users?.toLocaleString()}</p>
+              <p className="font-semibold">
+                {data.total_users?.toLocaleString()}
+              </p>
             </div>
             <div>
               <p className="text-sm text-gray-600">Sessions</p>
@@ -411,18 +436,24 @@ const RadialMetricWheel = () => {
             </div>
             <div>
               <p className="text-sm text-gray-600">Engagement</p>
-              <p className="font-semibold">{(data.engagement_rate * 100)?.toFixed(1)}%</p>
+              <p className="font-semibold">
+                {(data.engagement_rate * 100)?.toFixed(1)}%
+              </p>
             </div>
           </div>
-          
+
           <div className="pt-2 border-t">
             <div className="flex items-center gap-2">
               <p className="text-sm text-gray-600">Average Duration:</p>
-              <p className="font-semibold">{data.avg_session_duration?.toFixed(1)}s</p>
+              <p className="font-semibold">
+                {data.avg_session_duration?.toFixed(1)}s
+              </p>
             </div>
             <div className="flex items-center gap-2">
               <p className="text-sm text-gray-600">Bounce Rate:</p>
-              <p className="font-semibold">{(data.bounce_rate * 100)?.toFixed(1)}%</p>
+              <p className="font-semibold">
+                {(data.bounce_rate * 100)?.toFixed(1)}%
+              </p>
             </div>
           </div>
         </div>
@@ -430,23 +461,34 @@ const RadialMetricWheel = () => {
     );
   };
 
-  if (loading) return <div className="w-full h-full flex items-center justify-center">Loading...</div>;
-  if (error) return <div className="w-full h-full flex items-center justify-center text-red-500">Error: {error}</div>;
+  if (loading)
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        Loading...
+      </div>
+    );
+  if (error)
+    return (
+      <div className="w-full h-full flex items-center justify-center text-red-500">
+        Error: {error}
+      </div>
+    );
   if (!processedData) return null;
 
   const AnimatedRect = animated.rect;
 
-  const maxHeight = typeof window !== 'undefined' ? window.innerHeight * 0.8 : 800;
-  const dynamicHeight = root 
-    ? Math.min(maxHeight, Math.max(600, root.descendants().length * 15)) 
+  const maxHeight =
+    typeof window !== "undefined" ? window.innerHeight * 0.8 : 800;
+  const dynamicHeight = root
+    ? Math.min(maxHeight, Math.max(600, root.descendants().length * 15))
     : 600;
 
   // Modify the MetricSelector to stop propagation on click
   const MetricSelector = ({ value, onChange, label }) => (
     <div className="flex flex-col" onClick={(e) => e.stopPropagation()}>
       <label className="mb-1">{label}</label>
-      <select 
-        value={value} 
+      <select
+        value={value}
         onChange={(e) => onChange(e.target.value)}
         className="border rounded p-1"
       >
@@ -462,38 +504,44 @@ const RadialMetricWheel = () => {
   return (
     <div className="w-full h-[90vh] bg-white rounded-xl shadow-lg p-6">
       <Legend />
-      <div 
+      <div
         ref={chartRef}
         className="overflow-auto h-[calc(100%-6rem)] mt-6"
         onMouseLeave={handleChartMouseLeave}
       >
         <svg width="100%" height={dynamicHeight}>
-          <rect width="100%" height={dynamicHeight} fill={colors.background} rx={8} />
-          <Treemap
-            root={root}
-            size={[1200, dynamicHeight]}
-            padding={1}
-            round
-          >
-            {treemap => {
-              const maxDepth = Math.max(...treemap.descendants().map(d => d.depth));
+          <rect
+            width="100%"
+            height={dynamicHeight}
+            fill={colors.background}
+            rx={8}
+          />
+          <Treemap root={root} size={[1200, dynamicHeight]} padding={1} round>
+            {(treemap) => {
+              const maxDepth = Math.max(
+                ...treemap.descendants().map((d) => d.depth)
+              );
               return (
                 <Group>
-                  {treemap.descendants().map((node, i) => renderNode(node, i, maxDepth))}
+                  {treemap
+                    .descendants()
+                    .map((node, i) => renderNode(node, i, maxDepth))}
                 </Group>
               );
             }}
           </Treemap>
         </svg>
       </div>
+      {/* @ts-ignore */}
       {tooltipData && (
+        // @ts-ignore
         <TooltipWithBounds
           key={Math.random()}
           top={tooltipTop}
           left={tooltipLeft}
           style={{
-            position: 'absolute',
-            pointerEvents: 'auto',
+            position: "absolute",
+            pointerEvents: "auto",
           }}
         >
           <CustomTooltip data={tooltipData} />
@@ -502,6 +550,5 @@ const RadialMetricWheel = () => {
     </div>
   );
 };
-
 
 export default RadialMetricWheel;

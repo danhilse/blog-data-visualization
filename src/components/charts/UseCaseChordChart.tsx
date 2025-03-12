@@ -27,27 +27,16 @@ const UseCaseChordChart: React.FC<UseCaseChordProps> = ({
   const [activeSegment, setActiveSegment] = useState<number | null>(null);
   const [connections, setConnections] = useState<number[]>([]);
   
-  // Color palette
+  // Color palette from Act-On guidelines
   const colors = [
-	'#007B7F',
-	'#00A3A7',
-	'#00BABE',
-	'#33CBD1',
-	'#66DCE3',
-	'#99EDF2',
-	'#CCF8FA'
-  ];  
-  // Color palette
-//   const colors = [
-//     '#193661',
-//     '#274C7F',
-//     '#346194',
-//     '#4175AA',
-//     '#5C8BBA',
-//     '#779FC9',
-//     '#A2BCE0',
-//     '#CCD8ED'
-//   ];
+    '#007B7F',
+    '#00A3A7',
+    '#00BABE',
+    '#33CBD1',
+    '#66DCE3',
+    '#99EDF2',
+    '#CCF8FA'
+  ];
 
   // Ensure minimum dimensions
   const minWidth = 600;
@@ -62,22 +51,21 @@ const UseCaseChordChart: React.FC<UseCaseChordProps> = ({
     
     const adjustedHeight = safeHeight - padding;
     const availableWidth = safeWidth - legendWidth - padding;
-    const chartWidth = availableWidth; // Use full available width
+    const chartWidth = availableWidth;
     
-    // Ensure minimum chart size
     const minChartDimension = Math.min(chartWidth, adjustedHeight);
-    const outerRadius = Math.max(minChartDimension * 0.35, 100); // Slightly reduced from 0.4
+    const outerRadius = Math.max(minChartDimension * 0.35, 100);
     const innerRadius = Math.max(outerRadius - centerSize, 70);
     
     return {
       adjustedHeight,
-      chartWidth: availableWidth, // Use full available width
+      chartWidth: availableWidth,
       outerRadius,
       innerRadius,
-      // Add centerX to properly center the chart
       centerX: availableWidth / 2
     };
   }, [safeWidth, safeHeight, centerSize]);
+
 
   // Find connected segments when active segment changes
   useEffect(() => {
@@ -175,54 +163,51 @@ const UseCaseChordChart: React.FC<UseCaseChordProps> = ({
   }
 
   return (
-    <div className="w-full h-full bg-card rounded-xl shadow-lg p-8">
-      <h3 className="text-xl font-semibold text-card-foreground mb-6 text-center">
-        Use Case Relationships
-      </h3>
-      <div className="flex">
-        <div className="flex-grow">
-          <svg 
-            width={dimensions.chartWidth} 
-            height={dimensions.adjustedHeight}
-            className="overflow-visible" // Allow labels to overflow
-          >
-            <Group top={dimensions.adjustedHeight / 2} left={dimensions.centerX}>
-              <Chord matrix={matrix} padAngle={0.05}>
-                {({ chords }) => (
-                  <g>
-                    {/* Ribbons rendered first (behind arcs) */}
-                    {chords.map((chord, i) => (
-                      <Ribbon
-                        key={`ribbon-${i}`}
-                        chord={chord}
-                        radius={dimensions.innerRadius}
-                        fill={color(chord.source.index)}
-                        fillOpacity={0.75}
-                        className="transition-opacity duration-200"
-                        style={{
-                          opacity: activeSegment === null || 
-                            activeSegment === chord.source.index || 
-                            activeSegment === chord.target.index ? 0.75 : 0.1
-                        }}
-                      />
-                    ))}
-                    
-                    {/* Arcs rendered on top */}
-                    {chords.groups.map((group, i) => (
-                      <Arc
-                        key={`arc-${i}`}
-                        data={group}
-                        innerRadius={dimensions.innerRadius}
-                        outerRadius={dimensions.outerRadius}
-                        fill={color(i)}
-                        className="transition-opacity duration-200"
-                        style={{
-                          opacity: activeSegment === null || activeSegment === i ? 1 : 0.3
-                        }}
-                        onMouseEnter={() => setActiveSegment(i)}
-                        onMouseLeave={() => setActiveSegment(null)}
-                      />
-                    ))}
+    <div className="w-full h-screen flex bg-card rounded-xl shadow-lg">
+      <div className="flex-grow p-8">
+        <h3 className="text-xl font-semibold text-card-foreground mb-6 text-center">
+          Use Case Relationships
+        </h3>
+        <svg 
+          width={dimensions.chartWidth} 
+          height={dimensions.adjustedHeight}
+          className="overflow-visible"
+        >
+          <Group top={dimensions.adjustedHeight / 2} left={dimensions.centerX}>
+            <Chord matrix={matrix} padAngle={0.05}>
+              {({ chords }) => (
+                <g>
+                  {chords.map((chord, i) => (
+                    <Ribbon
+                      key={`ribbon-${i}`}
+                      chord={chord}
+                      radius={dimensions.innerRadius}
+                      fill={color(chord.source.index)}
+                      fillOpacity={0.75}
+                      className="transition-opacity duration-200"
+                      style={{
+                        opacity: activeSegment === null || 
+                          activeSegment === chord.source.index || 
+                          activeSegment === chord.target.index ? 0.75 : 0.1
+                      }}
+                    />
+                  ))}
+                  
+                  {chords.groups.map((group, i) => (
+                    <Arc
+                      key={`arc-${i}`}
+                      data={group}
+                      innerRadius={dimensions.innerRadius}
+                      outerRadius={dimensions.outerRadius}
+                      fill={color(i)}
+                      className="transition-opacity duration-200"
+                      style={{
+                        opacity: activeSegment === null || activeSegment === i ? 1 : 0.3
+                      }}
+                      onMouseEnter={() => setActiveSegment(i)}
+                      onMouseLeave={() => setActiveSegment(null)}
+                    />
+                  ))}
 
                     {/* Dynamic labels */}
                     {chords.groups.map((group, i) => {
@@ -265,14 +250,15 @@ const UseCaseChordChart: React.FC<UseCaseChordProps> = ({
                         </g>
                       );
                     })}
-                  </g>
-                )}
-              </Chord>
-            </Group>
-          </svg>
-        </div>
+                </g>
+              )}
+            </Chord>
+          </Group>
+        </svg>
+      </div>
 
-        <div className="w-72 p-6 bg-muted rounded-lg overflow-y-auto max-h-full">
+      <div className="w-72 bg-muted flex flex-col h-screen">
+        <div className="p-6 flex-grow overflow-y-auto">
           <div className="flex flex-col space-y-3">
             {labels.map((label, i) => (
               <div 
@@ -293,13 +279,13 @@ const UseCaseChordChart: React.FC<UseCaseChordProps> = ({
               </div>
             ))}
           </div>
-          <div className="mt-6 pt-6 border-t border-muted-foreground/20">
-            <p className="text-xs text-muted-foreground">
-              Hover over segments to highlight relationships. 
-              Labels show active use case and its connections.
-              Ribbon thickness indicates relationship strength.
-            </p>
-          </div>
+        </div>
+        <div className="p-6 border-t border-muted-foreground/20">
+          <p className="text-xs text-muted-foreground">
+            Hover over segments to highlight relationships. 
+            Labels show active use case and its connections.
+            Ribbon thickness indicates relationship strength.
+          </p>
         </div>
       </div>
     </div>

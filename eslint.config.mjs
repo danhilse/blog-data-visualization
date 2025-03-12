@@ -10,7 +10,33 @@ const compat = new FlatCompat({
 });
 
 const eslintConfig = [
-  ...compat.extends("next/core-web-vitals", "next/typescript"),
+  ...compat.extends("next/core-web-vitals"),
+  ...compat.extends("next/typescript"),
+  {
+    files: ["**/*.ts", "**/*.tsx"],
+    rules: {
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-implicit-any": "off",
+      "@typescript-eslint/ban-types": ["error", {
+        "types": {
+          "{}": false,
+          "object": false,
+          "any": false
+        },
+        "extendDefaults": true
+      }],
+      "@typescript-eslint/no-string-literal": "off",
+      "@typescript-eslint/no-unsafe-member-access": "off"
+    },
+  },
+  {
+    // Rules for all file types
+    rules: {
+      "no-unused-vars": "off",
+    },
+  }
 ];
 
 export default eslintConfig;

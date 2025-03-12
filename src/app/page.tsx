@@ -5,21 +5,21 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import ZoomableSunburst from '@/components/charts/SunburstChart';
 import CategoriesChart from '@/components/charts/CategoriesChart';
 import UseCaseChart from '@/components/charts/UseCaseChart';
-import RelationshipsChart from '@/components/charts/RelationshipsChart';  // Fixed import
+import RelationshipsChart from '@/components/charts/RelationshipsChart';
 import WordCloudChart from '@/components/charts/WordCloudChart';
 import SankeyChart from '@/components/charts/SankeyChart';
 import UseCasePerformanceMatrix from '@/components/charts/PerformanceMatrix';
 import RadialMetricWheel from '@/components/charts/radial';
 import AnalyticsTreemap from '@/components/charts/tree';
+import GoogleSheetsEmbed from '@/components/charts/GoogleSheetsEmbed';  // Add this import
 import { Card } from '@/components/ui/card';
 import Image from 'next/image';
 
 export default function Home() {
   return (
-    <Tabs defaultValue="use-cases" className="h-screen bg-white">
+    <Tabs defaultValue="sheets" className="h-screen bg-white">
       {/* Fixed Header with Title and Nav */}
       <div className="h-16 bg-white border-b fixed w-full top-0 z-20 flex items-center justify-between px-6">
-        {/* <h1 className="text-lg font-semibold text-blue-800"> </h1> */}
         <div className="mb-6 flex pt-8">
           <Image 
             src="/logo.svg" 
@@ -32,15 +32,15 @@ export default function Home() {
         
         {/* Navigation Tabs - Right Aligned */}
         <TabsList className="h-full bg-transparent">
-          {['tree',
-          'sunburst',
-          'use-cases', 
-          // 'categories', 
-          'relationships', 
-          // 'word-cloud', 
-          'sankey', 
-          'matrix', 
-          // 'radial', 
+          {[
+              'sheets',  // Add the new tab
+
+            'tree',
+            'sunburst',
+            'use-cases',
+            'relationships',
+            'sankey',
+            'matrix',
           ].map((tab) => (
             <TabsTrigger
               key={tab}
@@ -92,6 +92,12 @@ export default function Home() {
             <TabsContent value="tree" className="min-h-full p-6">
               <AnalyticsTreemap />
             </TabsContent>
+
+            {/* Add the new Sheets tab content */}
+            <TabsContent value="sheets" className="min-h-full p-6">
+              <GoogleSheetsEmbed />
+            </TabsContent>
+
           </div>
         </Card>
       </div>

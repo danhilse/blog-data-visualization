@@ -1,0 +1,12 @@
+{
+    "version": "0.2",
+    "language": "en",
+    "words": [
+      "visx"
+    ],
+    "ignorePaths": [
+      "node_modules/**",
+      "build/**",
+      "dist/**"
+    ]
+  }

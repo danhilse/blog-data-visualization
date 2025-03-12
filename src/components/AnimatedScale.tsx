@@ -22,7 +22,7 @@ export function useAnimatedScale<ScaleInput>(
 ) {
   const [state, setState] = useState({
     domain: props.domain,
-    range: props.range
+    range: props.range,
   });
 
   const scaleRef = useRef(scale().domain(state.domain).range(state.range));
@@ -30,14 +30,14 @@ export function useAnimatedScale<ScaleInput>(
   useEffect(() => {
     setState((prevState) => ({
       ...prevState,
-      domain: props.domain
+      domain: props.domain,
     }));
   }, [props.domain[0], props.domain[1]]);
 
   useEffect(() => {
     setState((prevState) => ({
-      ...prevState, 
-      range: props.range
+      ...prevState,
+      range: props.range,
     }));
   }, [props.range[0], props.range[1]]);
 
@@ -47,18 +47,17 @@ export function useAnimatedScale<ScaleInput>(
   );
   const interpolateRange = d3interpolate(scaleRef.current.range(), state.range);
 
-  // @ts-ignore
   const { t } = useSpring({
     reset: true,
     from: { t: 0 },
     to: { t: 1 },
     config: {
       precision: 0.00001,
-      ...props.springConfig
+      ...props.springConfig,
     },
     onFrame: ({ t }: { t: number }) => {
       scaleRef.current.domain(interpolateDomain(t)).range(interpolateRange(t));
-    }
+    },
   });
 
   return {
@@ -66,7 +65,7 @@ export function useAnimatedScale<ScaleInput>(
     state,
     setState,
     interpolate: (func: (t: number) => any) => {
-      return t.interpolate(() => func(t));
-    }
+      return t.to((value) => func(value));
+    },
   };
 }

@@ -1,14 +1,14 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { Group } from '@visx/group';
-import { scaleLinear } from '@visx/scale';
-import { Circle } from '@visx/shape';
-import { AxisLeft, AxisBottom } from '@visx/axis';
-import { GridRows, GridColumns } from '@visx/grid';
-import { useTooltip, TooltipWithBounds } from '@visx/tooltip';
-import { localPoint } from '@visx/event';
-import { useSpring, useSprings, animated } from '@react-spring/web';
-import _ from 'lodash';
-import { useCaseMapping } from '@/types/chart';
+import React, { useState, useEffect, useMemo } from "react";
+import { Group } from "@visx/group";
+import { scaleLinear } from "@visx/scale";
+import { Circle } from "@visx/shape";
+import { AxisLeft, AxisBottom } from "@visx/axis";
+import { GridRows, GridColumns } from "@visx/grid";
+import { useTooltip, TooltipWithBounds } from "@visx/tooltip";
+import { localPoint } from "@visx/event";
+import { useSpring, useSprings, animated } from "@react-spring/web";
+import _ from "lodash";
+import { useCaseMapping } from "@/types/chart";
 
 const AnimatedCircle = animated(Circle);
 
@@ -22,11 +22,11 @@ const ArticlePerformanceScatter = () => {
 
   // Act-On brand colors
   const colors = {
-    get: '#00BABE',    // Teal for GET
-    keep: '#FD4A5C',   // Red for KEEP
-    grow: '#C2D500',   // Yellow for GROW
-    optimize: '#194F90', // Blue for OPTIMIZE
-    background: '#EEF3FA'
+    get: "#00BABE", // Teal for GET
+    keep: "#FD4A5C", // Red for KEEP
+    grow: "#C2D500", // Yellow for GROW
+    optimize: "#194F90", // Blue for OPTIMIZE
+    background: "#EEF3FA",
   };
 
   // Spring physics configuration
@@ -40,12 +40,12 @@ const ArticlePerformanceScatter = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('/api/data');
-        if (!response.ok) throw new Error('Failed to fetch data');
+        const response = await fetch("/api/data");
+        if (!response.ok) throw new Error("Failed to fetch data");
         const data = await response.json();
         setRawData(data);
       } catch (err) {
-        console.error('Error fetching data:', err);
+        console.error("Error fetching data:", err);
         setError(err.message);
       } finally {
         setLoading(false); // Set loading to false in 'finally'
@@ -54,30 +54,30 @@ const ArticlePerformanceScatter = () => {
     fetchData();
   }, []);
 
-    useEffect(() => {
-        if (chartContainerRef.current) {
-            const resizeObserver = new ResizeObserver(entries => {
-                if (!Array.isArray(entries) || !entries.length) {
-                    return;
-                }
-                const entry = entries[0];
-                setDimensions({
-                    width: entry.contentRect.width,
-                    height: 650
-                });
-            });
-
-            resizeObserver.observe(chartContainerRef.current);
-
-            return () => resizeObserver.disconnect(); // Clean up
+  useEffect(() => {
+    if (chartContainerRef.current) {
+      const resizeObserver = new ResizeObserver((entries) => {
+        if (!Array.isArray(entries) || !entries.length) {
+          return;
         }
-    }, []);
+        const entry = entries[0];
+        setDimensions({
+          width: entry.contentRect.width,
+          height: 650,
+        });
+      });
 
-    const width = dimensions.width;
-    const height = dimensions.height;
-    const margin = { top: 40, right: 120, bottom: 60, left: 80 };
-    const xMax = width - margin.left - margin.right;
-    const yMax = height - margin.top - margin.bottom;
+      resizeObserver.observe(chartContainerRef.current);
+
+      return () => resizeObserver.disconnect(); // Clean up
+    }
+  }, []);
+
+  const width = dimensions.width;
+  const height = dimensions.height;
+  const margin = { top: 40, right: 120, bottom: 60, left: 80 };
+  const xMax = width - margin.left - margin.right;
+  const yMax = height - margin.top - margin.bottom;
 
   // Process data with outlier filtering (useMemo is now called unconditionally)
   const { filteredData, stats, outlierCount, originalStats } = useMemo(() => {
@@ -87,13 +87,14 @@ const ArticlePerformanceScatter = () => {
     let outlierCount = 0;
     let originalStats = {};
 
-    if (rawData.length) { // Perform calculations only if rawData is not empty
-        transformedData = rawData
-        .filter(entry => {
+    if (rawData.length) {
+      // Perform calculations only if rawData is not empty
+      transformedData = rawData
+        .filter((entry) => {
           const useCaseName = entry.use_case_multi_primary?.name;
           return useCaseName && useCaseMapping[useCaseName];
         })
-        .map(entry => {
+        .map((entry) => {
           const useCaseName = entry.use_case_multi_primary?.name;
           const mapping = useCaseMapping[useCaseName];
           return {
@@ -102,20 +103,28 @@ const ArticlePerformanceScatter = () => {
             category: mapping.getKeepGrow,
             title: entry.title,
             useCase: useCaseName,
-            engagementRate: (entry.analytics?.engagement_rate || 0) * 100
+            engagementRate: (entry.analytics?.engagement_rate || 0) * 100,
           };
         });
 
-      const viewsMean = _.meanBy(transformedData, 'views');
-      const viewsStd = Math.sqrt(_.meanBy(transformedData, d => Math.pow(d.views - viewsMean, 2)));
-      const durationMean = _.meanBy(transformedData, 'avgSessionDuration');
-      const durationStd = Math.sqrt(_.meanBy(transformedData, d => Math.pow(d.avgSessionDuration - durationMean, 2)));
+      const viewsMean = _.meanBy(transformedData, "views");
+      const viewsStd = Math.sqrt(
+        _.meanBy(transformedData, (d) => Math.pow(d.views - viewsMean, 2))
+      );
+      const durationMean = _.meanBy(transformedData, "avgSessionDuration");
+      const durationStd = Math.sqrt(
+        _.meanBy(transformedData, (d) =>
+          Math.pow(d.avgSessionDuration - durationMean, 2)
+        )
+      );
 
-      filtered = transformedData.filter(d => {
+      filtered = transformedData.filter((d) => {
         if (showOutliers) return true;
 
         const viewsZScore = Math.abs((d.views - viewsMean) / viewsStd);
-        const durationZScore = Math.abs((d.avgSessionDuration - durationMean) / durationStd);
+        const durationZScore = Math.abs(
+          (d.avgSessionDuration - durationMean) / durationStd
+        );
         return viewsZScore <= 3 && durationZScore <= 3;
       });
 
@@ -139,7 +148,6 @@ const ArticlePerformanceScatter = () => {
     };
   }, [rawData, showOutliers, useCaseMapping]); // Include useCaseMapping in dependencies
 
-
   // Tooltip setup (no changes)
   const {
     tooltipData,
@@ -153,29 +161,28 @@ const ArticlePerformanceScatter = () => {
   // Setup scales (these *can* be inside useMemo, but it's generally clearer
   // to keep them separate if they're simple calculations).  They MUST be
   // before the early returns.
-    const xScale = useMemo(() => {
-        return scaleLinear({
-            domain: [0, Math.max(...filteredData.map(d => d.views))],
-            range: [0, xMax],
-            nice: true,
-        });
-    }, [filteredData, xMax]);
+  const xScale = useMemo(() => {
+    return scaleLinear({
+      domain: [0, Math.max(...filteredData.map((d) => d.views))],
+      range: [0, xMax],
+      nice: true,
+    });
+  }, [filteredData, xMax]);
 
-    const yScale = useMemo(() => {
-        return scaleLinear({
-            domain: [0, Math.max(...filteredData.map(d => d.avgSessionDuration))],
-            range: [yMax, 0],
-            nice: true,
-        });
-    }, [filteredData, yMax]);
-
+  const yScale = useMemo(() => {
+    return scaleLinear({
+      domain: [0, Math.max(...filteredData.map((d) => d.avgSessionDuration))],
+      range: [yMax, 0],
+      nice: true,
+    });
+  }, [filteredData, yMax]);
 
   const getColor = (category) => {
     const colorMap = {
-      '1-GET': colors.get,
-      '2-KEEP': colors.keep,
-      '3-GROW': colors.grow,
-      '4-OPTIMIZE': colors.optimize
+      "1-GET": colors.get,
+      "2-KEEP": colors.keep,
+      "3-GROW": colors.grow,
+      "4-OPTIMIZE": colors.optimize,
     };
     return colorMap[category];
   };
@@ -195,54 +202,66 @@ const ArticlePerformanceScatter = () => {
 
   // Function to calculate distance from the center
   const getDistanceFromCenter = (x, y) => {
-    return Math.sqrt(Math.pow(x - chartCenterX, 2) + Math.pow(y - chartCenterY, 2));
+    return Math.sqrt(
+      Math.pow(x - chartCenterX, 2) + Math.pow(y - chartCenterY, 2)
+    );
   };
 
   // Find the maximum distance for normalization
   const maxDistance = useMemo(() => {
     let maxDist = 0;
-    filteredData.forEach(d => {
+    filteredData.forEach((d) => {
       const x = xScale(d.views);
       const y = yScale(d.avgSessionDuration);
       const dist = getDistanceFromCenter(x, y);
       maxDist = Math.max(maxDist, dist);
     });
     return maxDist;
-
   }, [filteredData, xScale, yScale]);
 
   // After computing filteredData, xScale, yScale, maxDistance, etc.
-const springs = useSprings(
-  filteredData.length,
-  filteredData.map(d => {
-    const x = xScale(d.views);
-    const y = yScale(d.avgSessionDuration);
-    const distance = getDistanceFromCenter(x, y);
-    const delay = (distance / maxDistance) * 800;
-    return {
-      from: { scale: 0, opacity: 0, cx: x, cy: y },
-      to: { scale: 1, opacity: 0.6, cx: x, cy: y },
-      config: springConfig,
-      delay: 100 + delay,
-    };
-  })
-);
+  const springs = useSprings(
+    filteredData.length,
+    filteredData.map((d) => {
+      const x = xScale(d.views);
+      const y = yScale(d.avgSessionDuration);
+      const distance = getDistanceFromCenter(x, y);
+      const delay = (distance / maxDistance) * 800;
+      return {
+        from: { scale: 0, opacity: 0, cx: x, cy: y },
+        to: { scale: 1, opacity: 0.6, cx: x, cy: y },
+        config: springConfig,
+        delay: 100 + delay,
+      };
+    })
+  );
 
-    // --- NOW it's safe to have early returns ---
-    if (loading) return (
-        <div ref={chartContainerRef} className="w-full h-full bg-white rounded-xl shadow-lg p-6 flex items-center justify-center">
+  // --- NOW it's safe to have early returns ---
+  if (loading)
+    return (
+      <div
+        ref={chartContainerRef}
+        className="w-full h-full bg-white rounded-xl shadow-lg p-6 flex items-center justify-center"
+      >
         <div className="text-lg">Loading visualization...</div>
-        </div>
+      </div>
     );
 
-    if (error) return (
-        <div ref={chartContainerRef} className="w-full h-full bg-white rounded-xl shadow-lg p-6 flex items-center justify-center">
+  if (error)
+    return (
+      <div
+        ref={chartContainerRef}
+        className="w-full h-full bg-white rounded-xl shadow-lg p-6 flex items-center justify-center"
+      >
         <div className="text-red-500">Error loading data: {error}</div>
-        </div>
+      </div>
     );
 
   return (
-    <div ref={chartContainerRef} className="w-full h-full bg-white rounded-xl shadow-lg p-6 relative">
+    <div
+      ref={chartContainerRef}
+      className="w-full h-full bg-white rounded-xl shadow-lg p-6 relative"
+    >
       <div className="flex justify-between items-center mb-4">
         <div className="text-lg font-semibold">Article Performance</div>
         <div className="flex items-center gap-4">
@@ -257,19 +276,25 @@ const springs = useSprings(
           </label>
           <div className="text-sm text-gray-500">
             {filteredData.length} articles plotted
-            {outlierCount > 0 && !showOutliers && ` (${outlierCount} outliers hidden)`}
+            {outlierCount > 0 &&
+              !showOutliers &&
+              ` (${outlierCount} outliers hidden)`}
           </div>
         </div>
       </div>
 
       {/* Category summary */}
       <div className="mb-4 text-sm text-gray-600 flex gap-4">
-        {['1-GET', '2-KEEP', '3-GROW', '4-OPTIMIZE'].map(category => (
+        {["1-GET", "2-KEEP", "3-GROW", "4-OPTIMIZE"].map((category) => (
           <div key={category} className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full" style={{ backgroundColor: getColor(category) }}></div>
+            <div
+              className="w-3 h-3 rounded-full"
+              style={{ backgroundColor: getColor(category) }}
+            ></div>
             <span>
               {category}: {stats[category] || 0}
-              {!showOutliers && originalStats[category] !== stats[category] &&
+              {!showOutliers &&
+                originalStats[category] !== stats[category] &&
                 ` (${originalStats[category] - stats[category]} outliers)`}
             </span>
           </div>
@@ -320,7 +345,6 @@ const springs = useSprings(
             );
           })}
 
-
           <AxisLeft
             scale={yScale}
             stroke="#101820"
@@ -328,10 +352,10 @@ const springs = useSprings(
             label="Average Session Duration (seconds)"
             labelOffset={50}
             tickLabelProps={() => ({
-              fill: '#101820',
+              fill: "#101820",
               fontSize: 10,
-              textAnchor: 'end',
-              dx: -4
+              textAnchor: "end",
+              dx: -4,
             })}
           />
           <AxisBottom
@@ -343,20 +367,20 @@ const springs = useSprings(
             labelOffset={40}
             tickFormat={(value) => value.toLocaleString()}
             tickLabelProps={() => ({
-              fill: '#101820',
+              fill: "#101820",
               fontSize: 10,
-              textAnchor: 'middle',
-              dy: 4
+              textAnchor: "middle",
+              dy: 4,
             })}
           />
         </Group>
 
         <Group top={margin.top} left={width - margin.right + 20}>
           {[
-            { label: '1-GET', color: colors.get },
-            { label: '2-KEEP', color: colors.keep },
-            { label: '3-GROW', color: colors.grow },
-            { label: '4-OPTIMIZE', color: colors.optimize }
+            { label: "1-GET", color: colors.get },
+            { label: "2-KEEP", color: colors.keep },
+            { label: "3-GROW", color: colors.grow },
+            { label: "4-OPTIMIZE", color: colors.optimize },
           ].map((item, i) => (
             <g key={item.label} transform={`translate(0, ${i * 20})`}>
               <circle r={4} fill={item.color} opacity={0.6} />
@@ -369,17 +393,24 @@ const springs = useSprings(
       </svg>
 
       {tooltipOpen && tooltipData && (
+        // @ts-ignore - Adding children prop to animated.g
         <TooltipWithBounds
           top={tooltipTop}
           left={tooltipLeft}
           className="bg-white p-3 rounded shadow-lg border border-gray-200"
         >
           <div className="text-sm">
+            {/* @ts-ignore */}
             <div className="font-medium mb-1">{tooltipData.title}</div>
+            {/* @ts-ignore */}
             <div>Use Case: {tooltipData.useCase}</div>
+            {/* @ts-ignore */}
             <div>Views: {tooltipData.views.toLocaleString()}</div>
+            {/* @ts-ignore */}
             <div>Duration: {tooltipData.avgSessionDuration.toFixed(1)}s</div>
+            {/* @ts-ignore */}
             <div>Engagement: {tooltipData.engagementRate.toFixed(1)}%</div>
+            {/* @ts-ignore */}
             <div>Category: {tooltipData.category}</div>
           </div>
         </TooltipWithBounds>

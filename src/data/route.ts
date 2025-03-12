@@ -15,7 +15,7 @@ export async function GET() {
     
     // Transform and filter the data using useCaseMapping
     const transformedData = Object.entries(rawData)
-      .map(([key, entry]: [string, any]) => {
+      .map(([key, entry]: [string, { use_case_multi_primary?: { name: string } }]) => {
         const useCaseName = entry.use_case_multi_primary?.name;
         
         // Only include entries that have a valid use case and mapping
@@ -35,9 +35,11 @@ export async function GET() {
       .filter(Boolean); // Remove null entries
 
     // Log summary for debugging
-    const categoryCounts = transformedData.reduce((acc, item) => {
-      const category = item.getKeepGrow;
-      acc[category] = (acc[category] || 0) + 1;
+    const categoryCounts = transformedData.reduce<Record<string, number>>((acc, item) => {
+      if (item && item.getKeepGrow) {
+        const category = item.getKeepGrow;
+        acc[category] = (acc[category] || 0) + 1;
+      }
       return acc;
     }, {});
 
