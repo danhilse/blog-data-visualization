@@ -16,11 +16,9 @@ import {
 import { useCaseMapping } from "@/types/chart";
 
 const AnimatedPath = animated.path;
+const AnimatedGroup = animated.g;
 const AnimatedText = animated(({ children, ...props }) => (
   <text {...props}>{children}</text>
-));
-const AnimatedGroup = animated(({ children, ...props }) => (
-  <g {...props}>{children}</g>
 ));
 
 const ZoomableSunburst = () => {
@@ -180,12 +178,13 @@ const ZoomableSunburst = () => {
         const totalUseCases = Object.values(useCaseCounts).reduce(
           (sum: number, count: number) => sum + count,
           0
-        ) as number;
+        );
 
         // Calculate angles in radians for use cases
         const useCaseAngles = {};
         Object.entries(useCaseCounts).forEach(([name, count]) => {
           useCaseAngles[name] =
+            // @ts-ignore
             ((count as number) / totalUseCases) * (2 * Math.PI);
         });
 
@@ -419,8 +418,42 @@ const ZoomableSunburst = () => {
     const fillOpacity = node.children ? (depth === 1 ? 0.9 : 0.7) : 0.5;
 
     return (
+      // @ts-ignore
       <AnimatedGroup key={`${node.name}-${depth}`}>
         <AnimatedPath
+          //  @ts-ignore
+          d={to(
+            [springForDepth.progress, springForDepth.angle],
+            (progress, angle) => {
+              const interpolatedStartAngle = node.startAngle;
+              const interpolatedEndAngle =
+                depth === 0
+                  ? node.endAngle
+                  : node.startAngle + (node.endAngle - node.startAngle) * angle;
+
+              let currentStart = 0;
+              for (let i = 0; i < depth; i++) {
+                const prevRingCurrentProgress = [
+                  ring1Spring,
+                  ring2Spring,
+                  ring3Spring,
+                  ring4Spring,
+                ][i].progress.get();
+                currentStart += ringWidths[i] * prevRingCurrentProgress;
+              }
+
+              const currentWidth = ringWidth * progress;
+
+              return (
+                arc()({
+                  innerRadius: currentStart,
+                  outerRadius: currentStart + currentWidth,
+                  startAngle: interpolatedStartAngle,
+                  endAngle: interpolatedEndAngle,
+                }) || ""
+              );
+            }
+          )}
           fill={fillColor}
           fillOpacity={springForDepth.progress.to((p) => p * fillOpacity)}
           stroke="#1f2937"
@@ -429,40 +462,6 @@ const ZoomableSunburst = () => {
             cursor: "pointer",
             filter: "none",
             transition: "filter 0.3s ease",
-            // @ts-ignore
-            d: to(
-              [springForDepth.progress, springForDepth.angle],
-              (progress, angle) => {
-                const interpolatedStartAngle = node.startAngle;
-                const interpolatedEndAngle =
-                  depth === 0
-                    ? node.endAngle
-                    : node.startAngle +
-                      (node.endAngle - node.startAngle) * angle;
-
-                let currentStart = 0;
-                for (let i = 0; i < depth; i++) {
-                  const prevRingCurrentProgress = [
-                    ring1Spring,
-                    ring2Spring,
-                    ring3Spring,
-                    ring4Spring,
-                  ][i].progress.get();
-                  currentStart += ringWidths[i] * prevRingCurrentProgress;
-                }
-
-                const currentWidth = ringWidth * progress;
-
-                return (
-                  arc()({
-                    innerRadius: currentStart,
-                    outerRadius: currentStart + currentWidth,
-                    startAngle: interpolatedStartAngle,
-                    endAngle: interpolatedEndAngle,
-                  }) || ""
-                );
-              }
-            ),
           }}
           onMouseEnter={(e) => {
             e.target.style.filter =
@@ -484,6 +483,7 @@ const ZoomableSunburst = () => {
           }}
         />
         {angleInDegrees > (depth === 3 ? 3 : 5) && (
+          // @ts-ignore
           <AnimatedGroup
             style={{
               opacity: to(
@@ -576,7 +576,7 @@ const ZoomableSunburst = () => {
         ref={containerRef}
         className="relative w-full max-w-full min-w-[800px] min-h-[800px] h-screen bg-card rounded-xl shadow-lg p-8 flex items-center justify-center"
       >
-        {/* @ts-ignore - Adding children prop to animated.g */}
+        {/* @ts-ignore */}
         <animated.svg
           width={dimensions.width}
           height={dimensions.height}

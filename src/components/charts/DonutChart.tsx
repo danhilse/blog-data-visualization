@@ -3,7 +3,7 @@ import Pie from "@visx/shape/lib/shapes/Pie";
 import { scaleOrdinal } from "@visx/scale";
 import { Group } from "@visx/group";
 import { Card } from "@/components/ui/card";
-import { animated, useSpring, config, to } from "react-spring";
+import { animated, useSpring, config } from "react-spring";
 
 interface DataItem {
   label: string;
@@ -142,11 +142,13 @@ const DonutChart = ({
                           className="cursor-pointer"
                           style={{
                             transformOrigin: `${centroidX}px ${centroidY}px`, // Rotate around centroid
-                            // @ts-ignore
-                            transform: to(
-                              [segmentSpring.scale, segmentSpring.rotate],
-                              (s, r) => `scale(${s}) rotate(${r}deg)`
-                            ), // Combine scale and rotation
+                            transform: segmentSpring.scale
+                              .to((s) => `scale(${s})`)
+                              .to(
+                                // @ts-ignore
+                                (s, r) => `scale(${s}) rotate(${r}deg)`,
+                                segmentSpring.rotate
+                              ), //Combine scale and rotation
                             opacity: segmentSpring.opacity,
                           }}
                         >
