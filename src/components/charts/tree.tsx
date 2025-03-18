@@ -302,6 +302,26 @@ const UseCaseTreemap = () => {
   const { tooltipData, tooltipLeft, tooltipTop, showTooltip, hideTooltip } =
     useTooltip();
 
+  const [containerWidth, setContainerWidth] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Simple useEffect to update width after mount
+  useEffect(() => {
+    if (chartRef.current) {
+      setContainerWidth(chartRef.current.clientWidth);
+    }
+    setIsMounted(true);
+
+    const handleResize = () => {
+      if (chartRef.current) {
+        setContainerWidth(chartRef.current.clientWidth);
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   // --- Stable callbacks -----------------------------------------------------
 
   // Modified chart mouse enter/leave handlers
@@ -671,34 +691,38 @@ const UseCaseTreemap = () => {
             fill={baseColors.background}
             rx={8}
           />
-          <Treemap
-            root={root}
-            size={[chartRef.current?.clientWidth || 1200, dynamicHeight]}
-            padding={1}
-            round
-          >
-            {(treemap) => {
-              const nodes = treemap.descendants();
-              return (
-                <Group>
-                  {nodes.map((node, i) => (
-                    <TreemapNode
-                      key={`node-${i}`}
-                      // @ts-ignore
-                      node={node}
-                      dynamicHeight={dynamicHeight}
-                      highlightedCluster={highlightedCluster}
-                      selectedNode={selectedNode}
-                      onNodeClick={handleNodeClick}
-                      onMouseEnter={handleMouseEnter}
-                      onMouseLeave={handleMouseLeave}
-                      isChartHovered={isChartHovered}
-                    />
-                  ))}
-                </Group>
-              );
-            }}
-          </Treemap>
+          {root && (
+            <Treemap
+              root={root}
+              size={[
+                containerWidth || chartRef.current?.clientWidth || 1200,
+                dynamicHeight,
+              ]}
+              padding={1}
+              round
+            >
+              {(treemap) => {
+                const nodes = treemap.descendants();
+                return (
+                  <Group>
+                    {nodes.map((node, i) => (
+                      <TreemapNode
+                        key={`node-${i}`}
+                        node={node}
+                        dynamicHeight={dynamicHeight}
+                        highlightedCluster={highlightedCluster}
+                        selectedNode={selectedNode}
+                        onNodeClick={handleNodeClick}
+                        onMouseEnter={handleMouseEnter}
+                        onMouseLeave={handleMouseLeave}
+                        isChartHovered={isChartHovered}
+                      />
+                    ))}
+                  </Group>
+                );
+              }}
+            </Treemap>
+          )}
         </svg>
       </div>
       {tooltipData && (
