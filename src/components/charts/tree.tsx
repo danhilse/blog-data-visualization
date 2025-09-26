@@ -555,6 +555,8 @@ const UseCaseTreemap = () => {
     ? Math.min(maxHeight, Math.max(600, root.descendants().length * 15))
     : 600;
 
+  const layoutWidth = containerWidth || chartRef.current?.clientWidth || 1200;
+
   // --- Legend (memoized) -----------------------------------------------------
   const Legend = useMemo(
     () => (
@@ -708,11 +710,9 @@ const UseCaseTreemap = () => {
           />
           {root && (
             <Treemap
+              key={`treemap-${layoutWidth}`}
               root={root}
-              size={[
-                containerWidth || chartRef.current?.clientWidth || 1200,
-                dynamicHeight,
-              ]}
+              size={[layoutWidth, dynamicHeight]}
               padding={1}
               round
             >
