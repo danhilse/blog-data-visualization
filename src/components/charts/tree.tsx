@@ -303,23 +303,38 @@ const UseCaseTreemap = () => {
     useTooltip();
 
   const [containerWidth, setContainerWidth] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
 
-  // Simple useEffect to update width after mount
+  // Keep container width in sync with the actual rendered width
   useEffect(() => {
-    if (chartRef.current) {
-      setContainerWidth(chartRef.current.clientWidth);
-    }
-    setIsMounted(true);
+    const element = chartRef.current;
+    if (!element) return;
 
-    const handleResize = () => {
-      if (chartRef.current) {
-        setContainerWidth(chartRef.current.clientWidth);
-      }
+    const updateWidth = () => {
+      const width = element.clientWidth;
+      if (!width) return;
+      setContainerWidth((prev) => (prev === width ? prev : width));
     };
 
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    updateWidth();
+
+    let resizeObserver: ResizeObserver | null = null;
+    if (typeof ResizeObserver !== "undefined") {
+      resizeObserver = new ResizeObserver((entries) => {
+        const entry = entries[0];
+        if (!entry) return;
+        const width = Math.round(entry.contentRect.width);
+        if (!width) return;
+        setContainerWidth((prev) => (prev === width ? prev : width));
+      });
+      resizeObserver.observe(element);
+    }
+
+    window.addEventListener("resize", updateWidth);
+
+    return () => {
+      window.removeEventListener("resize", updateWidth);
+      resizeObserver?.disconnect();
+    };
   }, []);
 
   // --- Stable callbacks -----------------------------------------------------
